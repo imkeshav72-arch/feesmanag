@@ -1,0 +1,594 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>College Fees Management System</title>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"/>
+  <style>
+    :root {
+      --bg: #0a0e1a;
+      --card: #111827;
+      --card2: #1a2235;
+      --border: rgba(255,255,255,0.07);
+      --accent: #3b82f6;
+      --accent2: #06b6d4;
+      --green: #10b981;
+      --red: #ef4444;
+      --yellow: #f59e0b;
+      --text: #f1f5f9;
+      --muted: #64748b;
+      --font: 'Plus Jakarta Sans', sans-serif;
+    }
+    * { margin:0; padding:0; box-sizing:border-box; }
+    body { font-family:var(--font); background:var(--bg); color:var(--text); min-height:100vh; }
+
+    /* SIDEBAR */
+    .sidebar {
+      position:fixed; left:0; top:0; width:240px; height:100vh;
+      background:var(--card); border-right:1px solid var(--border);
+      display:flex; flex-direction:column; z-index:100;
+    }
+    .logo {
+      padding:24px 20px;
+      border-bottom:1px solid var(--border);
+    }
+    .logo h2 { font-size:1.1rem; font-weight:800; color:var(--accent); letter-spacing:0.5px; }
+    .logo p { font-size:0.72rem; color:var(--muted); margin-top:3px; }
+    .nav { padding:16px 12px; flex:1; }
+    .nav-item {
+      display:flex; align-items:center; gap:10px;
+      padding:11px 14px; border-radius:10px; cursor:pointer;
+      font-size:0.88rem; font-weight:500; color:var(--muted);
+      transition:all 0.2s; margin-bottom:4px;
+    }
+    .nav-item:hover { background:var(--card2); color:var(--text); }
+    .nav-item.active { background:rgba(59,130,246,0.15); color:var(--accent); }
+    .nav-item span { font-size:1.1rem; }
+
+    /* MAIN */
+    .main { margin-left:240px; padding:28px; min-height:100vh; }
+    .page { display:none; animation:fadeIn 0.3s ease; }
+    .page.active { display:block; }
+    @keyframes fadeIn { from{opacity:0;transform:translateY(12px)} to{opacity:1;transform:translateY(0)} }
+
+    .page-header { margin-bottom:24px; }
+    .page-header h1 { font-size:1.6rem; font-weight:800; }
+    .page-header p { color:var(--muted); font-size:0.88rem; margin-top:4px; }
+
+    /* STATS */
+    .stats-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:16px; margin-bottom:28px; }
+    .stat-card {
+      background:var(--card); border:1px solid var(--border);
+      border-radius:16px; padding:20px;
+    }
+    .stat-label { font-size:0.78rem; color:var(--muted); text-transform:uppercase; letter-spacing:1px; margin-bottom:10px; }
+    .stat-value { font-size:1.9rem; font-weight:800; }
+    .stat-value.blue { color:var(--accent); }
+    .stat-value.green { color:var(--green); }
+    .stat-value.yellow { color:var(--yellow); }
+    .stat-value.cyan { color:var(--accent2); }
+
+    /* CARDS */
+    .card {
+      background:var(--card); border:1px solid var(--border);
+      border-radius:16px; padding:24px; margin-bottom:20px;
+    }
+    .card-title { font-size:1rem; font-weight:700; margin-bottom:18px; display:flex; align-items:center; gap:8px; }
+
+    /* FORM */
+    .form-grid { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+    .form-group { display:flex; flex-direction:column; gap:6px; }
+    .form-group.full { grid-column:1/-1; }
+    label { font-size:0.8rem; font-weight:600; color:var(--muted); text-transform:uppercase; letter-spacing:0.5px; }
+    input, select, textarea {
+      background:var(--card2); border:1px solid var(--border);
+      color:var(--text); padding:10px 14px; border-radius:10px;
+      font-family:var(--font); font-size:0.9rem; outline:none;
+      transition:border-color 0.2s;
+    }
+    input:focus, select:focus { border-color:var(--accent); }
+    select option { background:var(--card2); }
+
+    .btn {
+      padding:11px 22px; border:none; border-radius:10px;
+      font-family:var(--font); font-size:0.88rem; font-weight:600;
+      cursor:pointer; transition:all 0.2s;
+    }
+    .btn-primary { background:var(--accent); color:#fff; }
+    .btn-primary:hover { background:#2563eb; transform:translateY(-1px); }
+    .btn-success { background:var(--green); color:#fff; }
+    .btn-success:hover { background:#059669; }
+    .btn-danger { background:transparent; border:1px solid rgba(239,68,68,0.4); color:var(--red); font-size:0.78rem; padding:6px 12px; }
+    .btn-danger:hover { background:rgba(239,68,68,0.1); }
+    .btn-row { display:flex; gap:10px; margin-top:18px; }
+
+    /* TABLE */
+    .table-wrap { overflow-x:auto; border-radius:12px; }
+    table { width:100%; border-collapse:collapse; font-size:0.87rem; }
+    thead tr { background:var(--card2); }
+    th { padding:12px 16px; text-align:left; font-size:0.75rem; font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:0.8px; white-space:nowrap; }
+    td { padding:13px 16px; border-top:1px solid var(--border); vertical-align:middle; }
+    tr:hover td { background:rgba(255,255,255,0.02); }
+
+    .badge {
+      display:inline-block; padding:3px 10px; border-radius:20px;
+      font-size:0.75rem; font-weight:600;
+    }
+    .badge-green { background:rgba(16,185,129,0.15); color:var(--green); }
+    .badge-yellow { background:rgba(245,158,11,0.15); color:var(--yellow); }
+    .badge-red { background:rgba(239,68,68,0.15); color:var(--red); }
+
+    /* TOAST */
+    .toast {
+      position:fixed; bottom:24px; right:24px; z-index:999;
+      background:#1e293b; border:1px solid var(--border); border-radius:12px;
+      padding:14px 20px; font-size:0.88rem; font-weight:500;
+      transform:translateY(80px); opacity:0; transition:all 0.3s;
+      max-width:320px;
+    }
+    .toast.show { transform:translateY(0); opacity:1; }
+    .toast.success { border-color:rgba(16,185,129,0.4); color:var(--green); }
+    .toast.error { border-color:rgba(239,68,68,0.4); color:var(--red); }
+
+    .search-bar { margin-bottom:16px; }
+    .search-bar input { width:100%; max-width:360px; }
+
+    .empty-state { text-align:center; padding:40px; color:var(--muted); font-size:0.9rem; }
+
+    @media(max-width:900px) {
+      .stats-grid { grid-template-columns:1fr 1fr; }
+      .form-grid { grid-template-columns:1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<div class="sidebar">
+  <div class="logo">
+    <h2>🎓 FeesMgr</h2>
+    <p>College Fees Management</p>
+  </div>
+  <nav class="nav">
+    <div class="nav-item active" onclick="showPage('dashboard')">
+      <span>📊</span> Dashboard
+    </div>
+    <div class="nav-item" onclick="showPage('students')">
+      <span>👨‍🎓</span> Students
+    </div>
+    <div class="nav-item" onclick="showPage('fees')">
+      <span>💳</span> Fee Records
+    </div>
+    <div class="nav-item" onclick="showPage('addFee')">
+      <span>➕</span> Add Payment
+    </div>
+  </nav>
+</div>
+
+<!-- MAIN -->
+<div class="main">
+
+  <!-- DASHBOARD -->
+  <div class="page active" id="page-dashboard">
+    <div class="page-header">
+      <h1>Dashboard</h1>
+      <p>Overview of all fees and students</p>
+    </div>
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-label">Total Students</div>
+        <div class="stat-value blue" id="stat-students">—</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Fees Collected</div>
+        <div class="stat-value green" id="stat-collected">—</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Pending Fees</div>
+        <div class="stat-value yellow" id="stat-pending">—</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Total Transactions</div>
+        <div class="stat-value cyan" id="stat-records">—</div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">📋 Recent Fee Payments</div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>#</th><th>Student</th><th>Roll No</th><th>Department</th>
+              <th>Fee Type</th><th>Amount</th><th>Date</th><th>Status</th>
+            </tr>
+          </thead>
+          <tbody id="recent-fees-body">
+            <tr><td colspan="8" class="empty-state">Loading...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- STUDENTS PAGE -->
+  <div class="page" id="page-students">
+    <div class="page-header">
+      <h1>Students</h1>
+      <p>Add and manage student records</p>
+    </div>
+
+    <div class="card">
+      <div class="card-title">➕ Add New Student</div>
+      <div class="form-grid">
+        <div class="form-group">
+          <label>Full Name</label>
+          <input type="text" id="s-name" placeholder="e.g. Arun Kumar"/>
+        </div>
+        <div class="form-group">
+          <label>Roll Number</label>
+          <input type="text" id="s-roll" placeholder="e.g. CS2023001"/>
+        </div>
+        <div class="form-group">
+          <label>Department</label>
+          <select id="s-dept">
+            <option value="">Select Department</option>
+            <option>Computer Science</option>
+            <option>Electronics</option>
+            <option>Mechanical</option>
+            <option>Civil</option>
+            <option>IT</option>
+            <option>Arts</option>
+            <option>Commerce</option>
+            <option>Science</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Year</label>
+          <select id="s-year">
+            <option value="">Select Year</option>
+            <option value="1">1st Year</option>
+            <option value="2">2nd Year</option>
+            <option value="3">3rd Year</option>
+            <option value="4">4th Year</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Email</label>
+          <input type="email" id="s-email" placeholder="student@email.com"/>
+        </div>
+        <div class="form-group">
+          <label>Phone</label>
+          <input type="text" id="s-phone" placeholder="9876543210"/>
+        </div>
+      </div>
+      <div class="btn-row">
+        <button class="btn btn-primary" onclick="addStudent()">Add Student</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">👨‍🎓 All Students</div>
+      <div class="search-bar">
+        <input type="text" id="student-search" placeholder="🔍 Search by name or roll number..." oninput="filterStudents()"/>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>#</th><th>Name</th><th>Roll No</th><th>Department</th><th>Year</th><th>Email</th><th>Phone</th><th>Action</th></tr>
+          </thead>
+          <tbody id="students-body">
+            <tr><td colspan="8" class="empty-state">No students yet.</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- FEE RECORDS -->
+  <div class="page" id="page-fees">
+    <div class="page-header">
+      <h1>Fee Records</h1>
+      <p>All payment transactions</p>
+    </div>
+    <div class="card">
+      <div class="card-title">💳 All Transactions</div>
+      <div class="search-bar">
+        <input type="text" id="fee-search" placeholder="🔍 Search by name or fee type..." oninput="filterFees()"/>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>#</th><th>Student</th><th>Roll No</th><th>Dept</th><th>Fee Type</th><th>Amount</th><th>Mode</th><th>Date</th><th>Status</th><th>Action</th></tr>
+          </thead>
+          <tbody id="fees-body">
+            <tr><td colspan="10" class="empty-state">No records yet.</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ADD PAYMENT -->
+  <div class="page" id="page-addFee">
+    <div class="page-header">
+      <h1>Add Payment</h1>
+      <p>Record a new fee payment</p>
+    </div>
+    <div class="card">
+      <div class="card-title">💳 New Fee Payment</div>
+      <div class="form-grid">
+        <div class="form-group">
+          <label>Select Student</label>
+          <select id="f-student">
+            <option value="">-- Select Student --</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Fee Type</label>
+          <select id="f-type">
+            <option value="">Select Type</option>
+            <option>Tuition Fee</option>
+            <option>Exam Fee</option>
+            <option>Library Fee</option>
+            <option>Lab Fee</option>
+            <option>Hostel Fee</option>
+            <option>Transport Fee</option>
+            <option>Sports Fee</option>
+            <option>Miscellaneous</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Amount (₹)</label>
+          <input type="number" id="f-amount" placeholder="e.g. 15000"/>
+        </div>
+        <div class="form-group">
+          <label>Payment Mode</label>
+          <select id="f-mode">
+            <option value="">Select Mode</option>
+            <option>Cash</option>
+            <option>Online Transfer</option>
+            <option>Cheque</option>
+            <option>DD</option>
+            <option>UPI</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Payment Date</label>
+          <input type="date" id="f-date"/>
+        </div>
+        <div class="form-group">
+          <label>Status</label>
+          <select id="f-status">
+            <option value="Paid">Paid</option>
+            <option value="Pending">Pending</option>
+            <option value="Partial">Partial</option>
+          </select>
+        </div>
+        <div class="form-group full">
+          <label>Remarks</label>
+          <input type="text" id="f-remarks" placeholder="Optional note..."/>
+        </div>
+      </div>
+      <div class="btn-row">
+        <button class="btn btn-success" onclick="addFee()">💾 Save Payment</button>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<script>
+const API = 'http://localhost:5000';
+let allStudents = [];
+let allFees = [];
+
+// ─── NAVIGATION ───────────────────────────────────────────
+function showPage(name) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('page-' + name).classList.add('active');
+  document.querySelectorAll('.nav-item')[['dashboard','students','fees','addFee'].indexOf(name)].classList.add('active');
+  if (name === 'dashboard') loadDashboard();
+  if (name === 'students') loadStudents();
+  if (name === 'fees') loadFees();
+  if (name === 'addFee') loadStudentDropdown();
+}
+
+// ─── TOAST ─────────────────────────────────────────────────
+function showToast(msg, type='success') {
+  const t = document.getElementById('toast');
+  t.textContent = (type === 'success' ? '✅ ' : '❌ ') + msg;
+  t.className = 'toast show ' + type;
+  setTimeout(() => t.className = 'toast', 3000);
+}
+
+// ─── DASHBOARD ─────────────────────────────────────────────
+async function loadDashboard() {
+  try {
+    const [stats, fees] = await Promise.all([
+      fetch(API+'/stats').then(r=>r.json()),
+      fetch(API+'/fees').then(r=>r.json())
+    ]);
+    document.getElementById('stat-students').textContent = stats.total_students;
+    document.getElementById('stat-collected').textContent = '₹' + stats.total_fees_collected.toLocaleString('en-IN');
+    document.getElementById('stat-pending').textContent = '₹' + stats.pending_fees.toLocaleString('en-IN');
+    document.getElementById('stat-records').textContent = stats.total_records;
+
+    const tbody = document.getElementById('recent-fees-body');
+    const recent = fees.slice(0, 10);
+    if (!recent.length) { tbody.innerHTML = '<tr><td colspan="8" class="empty-state">No records yet.</td></tr>'; return; }
+    tbody.innerHTML = recent.map((f,i) => `
+      <tr>
+        <td>${i+1}</td>
+        <td><b>${f.name}</b></td>
+        <td>${f.roll_no}</td>
+        <td>${f.department}</td>
+        <td>${f.fee_type}</td>
+        <td><b>₹${Number(f.amount).toLocaleString('en-IN')}</b></td>
+        <td>${f.payment_date}</td>
+        <td>${badgeHtml(f.status)}</td>
+      </tr>`).join('');
+  } catch(e) { console.error(e); }
+}
+
+// ─── STUDENTS ──────────────────────────────────────────────
+async function loadStudents() {
+  try {
+    const res = await fetch(API+'/students');
+    allStudents = await res.json();
+    renderStudents(allStudents);
+  } catch(e) { console.error(e); }
+}
+
+function renderStudents(list) {
+  const tbody = document.getElementById('students-body');
+  if (!list.length) { tbody.innerHTML = '<tr><td colspan="8" class="empty-state">No students found.</td></tr>'; return; }
+  tbody.innerHTML = list.map((s,i) => `
+    <tr>
+      <td>${i+1}</td>
+      <td><b>${s.name}</b></td>
+      <td>${s.roll_no}</td>
+      <td>${s.department}</td>
+      <td>Year ${s.year}</td>
+      <td>${s.email || '—'}</td>
+      <td>${s.phone || '—'}</td>
+      <td><button class="btn btn-danger" onclick="deleteStudent(${s.id})">Delete</button></td>
+    </tr>`).join('');
+}
+
+function filterStudents() {
+  const q = document.getElementById('student-search').value.toLowerCase();
+  renderStudents(allStudents.filter(s =>
+    s.name.toLowerCase().includes(q) || s.roll_no.toLowerCase().includes(q)
+  ));
+}
+
+async function addStudent() {
+  const name = document.getElementById('s-name').value.trim();
+  const roll_no = document.getElementById('s-roll').value.trim();
+  const department = document.getElementById('s-dept').value;
+  const year = document.getElementById('s-year').value;
+  const email = document.getElementById('s-email').value.trim();
+  const phone = document.getElementById('s-phone').value.trim();
+
+  if (!name || !roll_no || !department || !year) { showToast('Fill all required fields!', 'error'); return; }
+
+  const res = await fetch(API+'/students', {
+    method:'POST', headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({name, roll_no, department, year, email, phone})
+  });
+  const data = await res.json();
+  if (res.ok) {
+    showToast('Student added successfully!');
+    ['s-name','s-roll','s-email','s-phone'].forEach(id => document.getElementById(id).value='');
+    document.getElementById('s-dept').value='';
+    document.getElementById('s-year').value='';
+    loadStudents();
+  } else {
+    showToast(data.error || 'Error adding student', 'error');
+  }
+}
+
+async function deleteStudent(id) {
+  if (!confirm('Delete this student and all their fee records?')) return;
+  await fetch(API+'/students/'+id, {method:'DELETE'});
+  showToast('Student deleted!');
+  loadStudents();
+}
+
+// ─── FEES ──────────────────────────────────────────────────
+async function loadFees() {
+  try {
+    const res = await fetch(API+'/fees');
+    allFees = await res.json();
+    renderFees(allFees);
+  } catch(e) { console.error(e); }
+}
+
+function renderFees(list) {
+  const tbody = document.getElementById('fees-body');
+  if (!list.length) { tbody.innerHTML = '<tr><td colspan="10" class="empty-state">No fee records found.</td></tr>'; return; }
+  tbody.innerHTML = list.map((f,i) => `
+    <tr>
+      <td>${i+1}</td>
+      <td><b>${f.name}</b></td>
+      <td>${f.roll_no}</td>
+      <td>${f.department}</td>
+      <td>${f.fee_type}</td>
+      <td><b>₹${Number(f.amount).toLocaleString('en-IN')}</b></td>
+      <td>${f.payment_mode}</td>
+      <td>${f.payment_date}</td>
+      <td>${badgeHtml(f.status)}</td>
+      <td><button class="btn btn-danger" onclick="deleteFee(${f.id})">Delete</button></td>
+    </tr>`).join('');
+}
+
+function filterFees() {
+  const q = document.getElementById('fee-search').value.toLowerCase();
+  renderFees(allFees.filter(f =>
+    f.name.toLowerCase().includes(q) || f.fee_type.toLowerCase().includes(q) || f.roll_no.toLowerCase().includes(q)
+  ));
+}
+
+async function deleteFee(id) {
+  if (!confirm('Delete this fee record?')) return;
+  await fetch(API+'/fees/'+id, {method:'DELETE'});
+  showToast('Record deleted!');
+  loadFees();
+}
+
+// ─── ADD FEE ───────────────────────────────────────────────
+async function loadStudentDropdown() {
+  const res = await fetch(API+'/students');
+  const students = await res.json();
+  const sel = document.getElementById('f-student');
+  sel.innerHTML = '<option value="">-- Select Student --</option>' +
+    students.map(s => `<option value="${s.id}">${s.name} (${s.roll_no})</option>`).join('');
+  document.getElementById('f-date').value = new Date().toISOString().split('T')[0];
+}
+
+async function addFee() {
+  const student_id = document.getElementById('f-student').value;
+  const fee_type = document.getElementById('f-type').value;
+  const amount = document.getElementById('f-amount').value;
+  const payment_mode = document.getElementById('f-mode').value;
+  const payment_date = document.getElementById('f-date').value;
+  const status = document.getElementById('f-status').value;
+  const remarks = document.getElementById('f-remarks').value;
+
+  if (!student_id || !fee_type || !amount || !payment_mode || !payment_date) {
+    showToast('Please fill all required fields!', 'error'); return;
+  }
+
+  const res = await fetch(API+'/fees', {
+    method:'POST', headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({student_id, fee_type, amount, payment_mode, payment_date, status, remarks})
+  });
+  const data = await res.json();
+  if (res.ok) {
+    showToast('Payment recorded successfully!');
+    document.getElementById('f-student').value='';
+    document.getElementById('f-type').value='';
+    document.getElementById('f-amount').value='';
+    document.getElementById('f-mode').value='';
+    document.getElementById('f-remarks').value='';
+  } else {
+    showToast(data.error || 'Error saving payment', 'error');
+  }
+}
+
+// ─── HELPERS ───────────────────────────────────────────────
+function badgeHtml(status) {
+  const cls = status === 'Paid' ? 'badge-green' : status === 'Pending' ? 'badge-yellow' : 'badge-red';
+  return `<span class="badge ${cls}">${status}</span>`;
+}
+
+// Init
+loadDashboard();
+</script>
+</body>
+</html>
